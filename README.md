@@ -1,3 +1,3 @@
 # bggn213
-class work from bioinformatics
+class work from bioinformatics at UCSD
 hi

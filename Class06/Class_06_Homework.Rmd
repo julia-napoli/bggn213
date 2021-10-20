@@ -1,0 +1,60 @@
+---
+title: "Class 06 Homework"
+author: "Julia Napoli"
+date: "10/15/2021"
+output: html_document
+---
+
+Section 1B.
+
+First, we need to install the bio3d package. I will only do this once and then I will comment it out but leave it in the script.
+
+```{r}
+#install.packages("bio3d")
+```
+
+The main problem is to fix the following code:
+
+```{r}
+# Can you improve this analysis code?
+library(bio3d)
+
+s1 <- read.pdb("4AKE") # kinase with drug
+s2 <- read.pdb("1AKE") # kinase no drug
+s3 <- read.pdb("1E4Y") # kinase with drug
+
+s1.chainA <- trim.pdb(s1, chain="A", elety="CA")
+s2.chainA <- trim.pdb(s2, chain="A", elety="CA")
+s3.chainA <- trim.pdb(s1, chain="A", elety="CA")
+
+s1.b <- s1.chainA$atom$b
+s2.b <- s2.chainA$atom$b
+s3.b <- s3.chainA$atom$b
+
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+plotb3(s2.b, sse=s2.chainA, typ="l", ylab="Bfactor")
+plotb3(s3.b, sse=s3.chainA, typ="l", ylab="Bfactor")
+```
+
+> Q1. What type of object is returned from the read.pdb() function?
+
+the read.pdb() function pulls a protein sequence and its corresponding information
+
+> Q2. What does the trim.pdb() function do?
+
+the trim.pdb() function trims the protein sequence to where the hyperbole began previously
+
+> Q3. What input parameter would turn off the marginal black and grey rectangles in the plots and what do they represent in this case?
+
+
+
+> Q4. What would be a better plot to compare across the different proteins?
+
+> Q5. Which proteins are more similar to each other in their B-factor trends. How could you quantify this? HINT: try the rbind(), dist() and hclust() functions together with a resulting dendrogram plot. Look up the documentation to see what each of these functions does.
+
+> Q6. How would you generalize the original code above to work with any set of input protein structures?
+
+Write your own function starting from the code above that analyzes protein drug interactions by reading in any protein PDB data and outputs a plot for the specified protein.
+
+Create a new RMarkdown document with your function code AND example output. We also suggest you include narrative text that address the rubric items below. Generate a PDF report and submit this PDF to our GradeScope site.
+

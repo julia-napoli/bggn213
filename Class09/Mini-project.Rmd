@@ -1,0 +1,223 @@
+---
+title: "Mini-project"
+author: "Julia Napoli"
+date: "10/27/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+fna.data <- read.csv("WisconsinCancer.csv")
+wisc.df <- data.frame(fna.data, row.names=1)
+head(wisc.df)
+```
+Let's make sure we don't include the diagnosis column since we won't be needing this for our analysis.
+
+```{r}
+wisc.data <- wisc.df[,-1]
+head(wisc.data)
+```
+
+And let's create a diagnosis vector for later...
+
+```{r}
+diagnosis <- fna.data$diagnosis
+# diagnosis <- (data.frame(fna.data, row.names=1))[,1]
+diagnosis
+# To double check that I pulled out a vector, we can check using the is.vector function
+# Vectors in R are only horizontal, you cannot have a vertical vector in R !
+is.vector(diagnosis)
+```
+
+> Q1 How many observations are in this dataset?
+
+```{r}
+nrow(wisc.data)
+```
+
+There are a total of 569 observations in this dataset.
+
+> Q2 How many of the observations have a malignant diagnosis?
+
+```{r}
+sum(diagnosis == "M")
+```
+
+A total of 212 of the observations have a malignant diagnosis.
+
+> Q3 How many variables/features in the data are suffixed with `_mean`?
+
+```{r}
+mean_cols <- grep(pattern = "_mean$", x = colnames(wisc.data), value = TRUE)
+# Adding value = TRUE returns the matching elements of the grep functions; value = FALSE (default) simply returns the integer indices
+mean_cols
+length(mean_cols)
+```
+
+There are a total of 10 variables in the data set that are suffixed with "_mean".
+
+Principal Component Analysis
+
+Check the column means and standard deviations to determine if the data should be scaled.
+
+```{r}
+column_means <- colMeans(wisc.data)
+std <- apply(wisc.data,2,sd)
+```
+
+```{r}
+head(wisc.data)
+wisc.pr <- prcomp(wisc.data, scale = TRUE)
+summary(wisc.pr)
+```
+
+> Q4 What proportion of the original variance is captured by the first principal components (PC1)?
+
+44.27%
+
+> Q5 How many principal components (PCs) are required to describe at least 70% of the original variance in the data?
+
+PC1, PC2 & PC3 (3 total components)
+
+> Q6 How many principal components (PCs) are required to describe at least 90% of the original variance in the data?
+
+PC1-PC7 (7 total components)
+
+Interpreting PCA Results
+
+Create a biplot of the `wisc.pr` using the biplot() function
+
+```{r}
+biplot(wisc.pr)
+```
+
+
+> Q7 What stands out to you about this plot? Is it easy or difficult to understand? Why?
+
+It takes a long time to produce and it incredibly difficult to read!
+
+
+Now let's look at a standard scatter plot of each observation along principal components 1 & 2 and color the points by diagnosis.
+
+```{r}
+# In order to use diagnosis as a color we must change it from a character vector to a factor vector!
+plot(wisc.pr$x[,1:2], col = as.factor(diagnosis), xlab = "PC1", ylab = "PC2")
+```
+
+> Q8 Generate a similar plot for principal components 1 and 3. What do you notice about these plots?
+
+```{r}
+plot(wisc.pr$x[,1],wisc.pr$x[,3], col = as.factor(diagnosis), xlab = "PC1", ylab = "PC3")
+```
+The first plot has a more clear differentiation between the two clusters than the second plot.
+
+Let's now use ggplot2 to make a more fancy figure of the results!
+
+```{r}
+diagnosis <- as.factor(diagnosis)
+df <- as.data.frame(wisc.pr$x)
+df$diagnosis <- diagnosis
+
+# Load ggplot2 package
+library(ggplot2)
+
+# Create a scatter plot
+ggplot(df) + aes(PC1,PC2, col = diagnosis) + geom_point()
+```
+
+## Variance explained
+
+Calculate the variance of each principal component
+
+```{r}
+pr.var <- wisc.pr$sdev^2
+head(pr.var)
+```
+
+Calculate the variance explained by each principal component by dividing the total variance explained of all principal components. 
+
+```{r}
+pve <- pr.var / sum(pr.var)
+plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained", ylim = c(0,1), type = "o")
+```
+
+Let's make an alternative scree plot of the same data...
+
+```{r}
+barplot(pve, ylab = "Percent of Variance Explained", names.arg = paste0("PC",1:length(pve)),las = 2, axes = FALSE)
+axis(2, at = pve, labels =round(pve,2)*100)
+```
+
+Optional! Checking out the factoextra package from CRAN.
+
+```{r}
+# install.packages("factoextra")
+library(factoextra)
+fviz_eig(wisc.pr, addlabels = TRUE)
+```
+
+## Communicating PCA Results
+
+> Q9 For the first principal component, what is the component of the loading vector (i.e. `wisc.pr$rotation[,1]`) for the feature `concave.points_mean`?
+
+```{r}
+wisc.pr$rotation[,1]
+```
+-0.26085376
+
+> Q10 What is the minimum number of principal components required to explain 80% of the variance of the data?
+
+```{r}
+summary(wisc.pr)
+summary_pcr <- summary(wisc.pr)
+sum(summary_pcr$importance[3,] <= 0.8)
+```
+PC1-PC5 (cumulative 84.7%), so a total of 5 principal components. [Note: PC1-PC4 covers a cumulative 79.2% variance].
+
+Using code to pull out the answer gives us 4 the answer of 4 principal components under 80% of variance, rounding to the tenth decimal point.
+
+## Heirarchical Clustering
+
+Scale the wisc.data using the scale() function
+
+```{r}
+data.scaled <- scale(wisc.data)
+# Calculate the Euclidean distances between all pairs of observations
+
+data.dist <- dist(data.scaled)
+
+# Create a heirarchical clustering model
+wisc.hclust <- hclust(data.dist, method = "complete")
+```
+
+> Q11 Using the plot() and abline() functions, what is the height at which the clustering model has 4 clusters?
+
+```{r}
+plot(wisc.hclust)
+abline(h = 19, col="red", lty=2)
+```
+## Select number of clusters
+
+```{r}
+wisc.hclust.clusters <- cutree(wisc.hclust, k=4)
+table(wisc.hclust.clusters,diagnosis)
+```
+
+> Q12 Can you find a better cluster vs diagnoses match by cutting into a different number of clusters between 2 and 10?
+
+```{r}
+wisc.hclust.clusters.test <- cutree(wisc.hclust, k=5)
+table(wisc.hclust.clusters.test,diagnosis)
+```
+Both k = 4 and k = 5 are good options, because the clustering results are enough to split up the malignant v. benign tumors into their own clusters, while at the same time there are not too many extra clusters being added that aren't really accounting for anything else in the data (k > 5 clusters). Because there isn't a huge difference between k =4 and k=5, I would choose k = 4 to be the most ideal clustering due to its simplicity.
+
+> Q13 Which method gives your favorite results for the same data.dist dataset? Explain your reasoning.
+
+
+```{r}
+plot(hclust(data.dist, method = "single"))
+plot(hclust(data.dist, method = "average"))
+plot(hclust(data.dist, method = "ward.D2"))
+```
+Personally, I'm a big fan of the "complete" method. The different methods tell R the different ways to plot the dendrogram. The single one is the worst, because it branches everything off the first singular cluster. Average did fine, but split the clusters out a bit more. Ward. D2. splits everything in two right off the bat, and then goes from there, which really only seems ideal if you for sure have two clusters. Overall, I think complete is the best way to visualize the clusters in the dataset.

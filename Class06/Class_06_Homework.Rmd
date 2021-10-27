@@ -46,9 +46,11 @@ the trim.pdb() function trims the protein sequence to where the hyperbole began 
 
 > Q3. What input parameter would turn off the marginal black and grey rectangles in the plots and what do they represent in this case?
 
-
+the sse input controls for the black & grey rectangles in the plot; leaving the sse call blank would remove the rectangles; they represent
 
 > Q4. What would be a better plot to compare across the different proteins?
+
+
 
 > Q5. Which proteins are more similar to each other in their B-factor trends. How could you quantify this? HINT: try the rbind(), dist() and hclust() functions together with a resulting dendrogram plot. Look up the documentation to see what each of these functions does.
 

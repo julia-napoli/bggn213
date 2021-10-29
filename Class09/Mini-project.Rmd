@@ -221,3 +221,73 @@ plot(hclust(data.dist, method = "average"))
 plot(hclust(data.dist, method = "ward.D2"))
 ```
 Personally, I'm a big fan of the "complete" method. The different methods tell R the different ways to plot the dendrogram. The single one is the worst, because it branches everything off the first singular cluster. Average did fine, but split the clusters out a bit more. Ward. D2. splits everything in two right off the bat, and then goes from there, which really only seems ideal if you for sure have two clusters. Overall, I think complete is the best way to visualize the clusters in the dataset.
+
+## Day two: finishing up the mini-project!
+
+## Combining Methods
+
+Clustering on PCA Results
+
+I will use 4 PCs and `hclust()` and `dist()`
+
+```{r}
+wisc.pr.hclust <- hclust(dist(wisc.pr$x[,1:4]), method = "ward.D2")
+plot(wisc.pr.hclust)
+abline(h=80,col = "orange") #orange for halloween!
+```
+
+Let's find our cluster membership vector by cutting this tree into k = 2 groups.
+
+```{r}
+grps <- cutree(wisc.pr.hclust, k=2)
+table(grps)
+```
+
+Now let's compare to the expert M and B vector.
+
+```{r}
+table(diagnosis)
+```
+
+We can do a cross-table by giving the `table()` function two inputs.
+
+```{r}
+table(grps,diagnosis)
+```
+
+***Accuracy***, essentially, how many did we get correct?
+```{r}
+(165+351) / nrow(wisc.data)
+```
+
+***Sensitivity*** refers to a test’s ability to correctly detect ill patients who do have the condition. In our example here the sensitivity is the total number of samples in the cluster identified as predominantly malignant (cancerous) divided by the total number of known malignant samples. In other words: TP/(TP+FN).
+
+```{r}
+165/(165+47)
+```
+
+***Specificity*** relates to a test’s ability to correctly reject healthy patients without a condition. In our example specificity is the proportion of benign (not cancerous) samples in the cluster identified as predominantly benign that are known to be benign. In other words: TN/(TN+FN)
+
+```{r}
+351/(351+47)
+```
+
+## Prediction
+We will use the predict() function that will take our PCA model from before and new cancer cell data and project that data onto our PCA space.
+
+```{r}
+#url <- "new_samples.csv"
+url <- "https://tinyurl.com/new-samples-CSV"
+new <- read.csv(url)
+npc <- predict(wisc.pr, newdata=new)
+npc
+```
+
+Now add these new samples to our PCA plot.
+```{r}
+plot(wisc.pr$x[,1:2], col=diagnosis)
+points(npc[,1],npc[,2], col = "blue", pch = 16, cex = 2)
+text(npc[,1],npc[,2], labels=c(1,2), col = "white")
+```
+
+

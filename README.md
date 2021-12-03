@@ -1,6 +1,3 @@
 # bggn213
-class work from bioinformatics at UCSD
-hi
-
-
-heres line 6
+class work from bioinformatics at UCSD 
+fall quarter 2021

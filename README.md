@@ -8,3 +8,5 @@ fall quarter 2021
 05. Data visualization with ggplot2
 06. R functions
 07. Other stuff
+08.
+09. Halloween candy mini-project [source](https://github.com/julia-napoli/bggn213/blob/main/Class09/Halloween_Mini-project.Rmd)
